@@ -4,8 +4,8 @@ use std::str::FromStr;
 use toml_datetime::*;
 
 use crate::key::Key;
-use crate::parser;
 use crate::repr::{Decor, Formatted};
+use crate::{parser, Repr};
 use crate::{Array, InlineTable, InternalString, RawString};
 
 /// Representation of a TOML Value (as part of a Key/Value Pair).
@@ -284,7 +284,13 @@ impl From<i64> for Value {
 
 impl From<f64> for Value {
     fn from(f: f64) -> Self {
-        Value::Float(Formatted::new(f))
+        let mut formatted = Formatted::new(f);
+        let mut string = format!("{f:.3}").trim_end_matches('0').to_string();
+        if string.ends_with('.') {
+            string.push('0');
+        }
+        formatted.set_repr_unchecked(Repr::new_unchecked(string));
+        Value::Float(formatted)
     }
 }
 
